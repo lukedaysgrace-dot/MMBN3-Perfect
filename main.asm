@@ -17,6 +17,7 @@ WHITE_ROM equ "mmbn3/Mega Man - Battle Network 3 - White Version (USA).gba"
 .include "patches/shops.asm"
 .include "patches/serenade_gift.asm"
 .include "patches/mistman.asm"
+.include "patches/title_screen.asm"
 
 // ---- Optional extras (NOT vanilla Blue/White) - comment out to disable ----
 .include "patches/extra_equipless_programs.asm"

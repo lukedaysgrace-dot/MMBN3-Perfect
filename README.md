@@ -7,7 +7,41 @@ alone: no rebalancing, no quality-of-life changes and no custom content.
 
 ---
 
-**Where to find everything from White in this ROM: see [WHITE_CONTENT_GUIDE.md](WHITE_CONTENT_GUIDE.md).**
+**Just want to play?** See [How to play](#how-to-play-patch-your-own-rom). **Where to find the White content:** [WHITE_CONTENT_GUIDE.md](WHITE_CONTENT_GUIDE.md).
+
+---
+
+## How to play (patch your own ROM)
+
+You don't need to build anything to play. The ready-made patch is in
+[`release/MMBN3-Perfect.bps`](release/MMBN3-Perfect.bps).
+
+1. Get your own dump of **Mega Man Battle Network 3 – Blue Version (USA)**.
+   It must be the clean US ROM:
+   - MD5 `6fe31df0144759b34ad666badaacc442`
+   - You can check it at [Rom Patcher JS](https://www.marcrobledo.com/RomPatcher.js/), which shows the hashes when you load a file.
+   - Japanese, European or already-patched ROMs will not work. The patcher will warn or refuse, because a BPS patch checks the source ROM.
+2. Apply the patch with either tool:
+   - **In a browser:** open [Rom Patcher JS](https://www.marcrobledo.com/RomPatcher.js/), pick your Blue ROM as *ROM file* and `MMBN3-Perfect.bps` as *Patch file*, then click **Apply patch**.
+   - **On Windows:** use [Floating IPS (Flips)](https://github.com/Alcaro/Flips/releases). Choose *Apply Patch*, select `MMBN3-Perfect.bps`, then your Blue ROM, then where to save the result.
+3. The patched ROM should be:
+   - MD5 `67ff4b83e5af1c498c11945060658a95`
+   - CRC32 `119526B5`
+   - 8,431,296 bytes
+4. Play it in any GBA emulator (mGBA is recommended) or on a flash cart.
+
+**Saves**
+
+- **Start a New Game.** The shop additions are copied into your save when you press New Game, so an old Blue save won't have them.
+- Everything else, including MistMan, the drop mix, Ground Style and the Giga chips, also works on an existing Blue save.
+- The save type is unchanged, so rename your `.sav` to match the new ROM's file name if you're bringing one over.
+- Don't load a White save. White's save has White's shops and version flag.
+
+**What the patch includes:** all of the White content, the two optional extras
+(Punk P chip and Press/EngyChng without installing) and the "BLUE+WHITE" title
+screen. Build it yourself (below) if you want it without the extras.
+
+Where to find everything from White: [WHITE_CONTENT_GUIDE.md](WHITE_CONTENT_GUIDE.md).
 
 ---
 
@@ -16,13 +50,22 @@ alone: no rebalancing, no quality-of-life changes and no custom content.
 1. Put your own dumps of the two US ROMs in `mmbn3/`:
    - `mmbn3/Mega Man - Battle Network 3 - Blue Version (USA).gba` (MD5 `6fe31df0144759b34ad666badaacc442`)
    - `mmbn3/Mega Man - Battle Network 3 - White Version (USA).gba` (MD5 `68817204a691449e655cba739dbb0165`)
-2. Install [armips](https://github.com/Kingcom/armips) (v0.11 or newer).
-3. From the repo root, run `armips main.asm`.
-4. The output is `MMBN3 - Perfect Version.gba`.
+2. Install [armips](https://github.com/Kingcom/armips) (v0.11 or newer) and put it on your `PATH`.
+3. Install Python 3 with `pip install numpy pillow scipy`. This is only needed for the title screen and the `.bps`.
+4. From the repo root, run `build.bat` on Windows or `./build.sh` on Linux/macOS. It does three things:
+   1. `python tools/make_title.py` builds the "BLUE+WHITE" title graphics into `build/` from the logos in both ROMs.
+   2. `armips main.asm` writes `MMBN3 - Perfect Version.gba`.
+   3. `python tools/make_bps.py` writes `release/MMBN3-Perfect.bps` and checks that it reproduces the ROM.
 
-The White ROM is only read during the build. The White-only data (Giga chip
-art, White's drop tables and MistMan's battle definitions) is copied out of
-your ROM by `.import`, so no Capcom data is stored in this repository. The
+You can run `armips main.asm` on its own. If `build/` is missing, the title
+screen is simply left as Blue's.
+
+The White ROM is only read during the build. White-only data (Giga chip
+art, White's drop tables, MistMan's battle definitions and the "WHITE" logo
+letters) is copied out of your own ROM by `.import` or by `make_title.py`.
+The source files in this repo contain no ROM data. As with any ROM-hack
+patch, `release/MMBN3-Perfect.bps` does hold the bytes it adds, so it can only
+be applied to a ROM you already own. `*.gba` and `build/` are gitignored. The
 old `white_giga_chip_sprites.dat` is no longer used.
 
 ---
@@ -113,14 +156,16 @@ assembled.
 
 ## Optional extras (not in either original version)
 
-These two are on by default at the repo owner's request. They are separate
-from the Blue + White merge, so comment out their `.include` lines at the
-bottom of `main.asm` to get the pure merge.
+These are on by default at the repo owner's request. They are separate
+from the Blue + White merge.
 
 | | Extra | Details |
 |---|---|---|
 | ✅ | **Press / EngyChng work if you own them** (`patches/extra_equipless_programs.asm`) | All 6 overworld checks for effect 0x28 (Press) and 0x24 (EngyChng) return true if the program is installed *or* is in your NaviCust inventory. Installing it still works as before. |
 | ✅ | **Punk P chip is obtainable** (`patches/extra_punk_chip.asm`) | The cut Mega chip 0x110 is fully present in the ROM, but in vanilla nothing gives it and the library skips it. Punk is fought in three levels: Punk, Punk α, Punk β. Their drop tables now follow the pattern every other Navi uses, with BowlMan as the template: plain Punk still drops only Zenny. **Punk α drops Punk P only at the highest busting levels** (the slots where BowlMan β gives his V4). **Punk β drops it more often**, in every slot where BowlMan β gives a BowlMan chip. Punk P is V3/V4-strength (180 damage, 92 MB, 4★), so it isn't handed out on every α win. Punk has only one chip, so there are no V2-V5 versions. The change is applied to both drop tables used by the 50/50 mix. The library now lists and counts Punk, and the hard-coded Mega total (85) is raised to 86 everywhere it is used (completion star, "n/total" display). |
+| ✅ | **"BLUE+WHITE" title screen** (`patches/title_screen.asm`, `tools/make_title.py`) | The logo reads *MEGA MAN BATTLE NETWORK 3 BLUE+WHITE*, and the screen is cut in half along the italic line through the "+". The left is Blue's title (blue stripes, navy plate) and the right is White's (grey stripes, grey plate). The word uses only Capcom's own lettering: Blue's "BLUE", and White's "WHIT" and final "E", narrowed at full height and at the original italic angle. The last E's arms still run into White's swoosh around the "3", and the plate, its border and the letter outlines are redrawn to match the originals. White's greys go in 32 palette slots that are empty on this screen (208-239). The title loads 240 colours instead of 224, and the menu's dimming covers 240 colours instead of 208, so the grey half dims like the blue half. "PERFECT BLUE" was considered, but the logo font has no P, R, F or C, so it would have needed invented letters. Delete `build/` or comment out the include to keep Blue's title. |
+
+To get the pure merge, comment out the two `extra_*.asm` lines under *Optional extras* at the bottom of `main.asm` and the `title_screen.asm` line above them.
 
 Note for the Mega library: vanilla's 85 already *included* MistMan's four
 chips, which is why Blue alone could never reach it. With MistMan in the
@@ -152,7 +197,7 @@ game, 85 (or 86 with Punk) can now be reached on one save.
   MistMan starts at V1.
 * White's "copies" of its own Gigas in the Chip Order list (all stock 0, which
   means they can't be ordered in either version) are not added.
-* The output ROM grows to about 8.03 MB. New data goes after the original
+* The output ROM grows to about 8.04 MB. New data goes after the original
   8 MB, and small hooks use 0xFF padding at `0x08235200` that is otherwise
   unused. No original Blue data is overwritten except the patched code and
   pointers listed in `notes/BlueWhiteDifferences.md`.
@@ -166,7 +211,7 @@ itself has no emulator-specific code.
 
 | Check | Method | Result |
 |---|---|---|
-| Changed bytes vs vanilla Blue | byte diff of the built ROM | only the intended 29 regions (784 bytes) plus appended data |
+| Changed bytes vs vanilla Blue | byte diff of the built ROM | 825 bytes inside the original 8 MB (the hooks, pointers and table entries described above), plus appended data |
 | Giga legality for all 11 Gigas, with and without BassGS in the library | unit test calling `0x08001A48` | pass |
 | Drop table hook stays stable within a battle, uses both tables ~50/50, Blue table untouched, White copy byte-exact, BassGS row = Bass X | unit test calling `0x08016098` | pass |
 | White Giga art is byte-exact and shows in the Library | byte compare plus screenshot | pass |
@@ -180,6 +225,8 @@ itself has no emulator-specific code.
 | BowlMan still uses Blue dialogue and flags | gameplay | pass |
 | New Game boots, flag 0x125E still set (Blue) | gameplay | pass |
 | Press/EngyChng usable when owned (not installed), not usable when not owned | unit test | pass |
+| Title screen reads BLUE+WHITE, split blue/white, emulator output matches the generated image pixel for pixel, palette RAM = built palette, grey half dims with the menu and fades out on New Game | emulator screenshots plus image compare | pass |
+| `release/MMBN3-Perfect.bps` applied to clean Blue gives the built ROM | Floating IPS and the repo's own BPS decoder, MD5 compare | pass |
 | Punk P: drop tables, library count +1, anti-cheat verify still passes, library shows 86/86 | unit test plus screenshot | pass |
 
 **Not yet tested end-to-end in an emulator:** walking through a Press gap or EngyChng barrier in the overworld, actually defeating Punk α/β in-game, winning the MistMan V2/V3 fights
