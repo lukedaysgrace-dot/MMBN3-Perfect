@@ -25,8 +25,8 @@ You don't need to build anything to play. The ready-made patch is in
    - **In a browser:** open [Rom Patcher JS](https://www.marcrobledo.com/RomPatcher.js/), pick your Blue ROM as *ROM file* and `MMBN3-Perfect.bps` as *Patch file*, then click **Apply patch**.
    - **On Windows:** use [Floating IPS (Flips)](https://github.com/Alcaro/Flips/releases). Choose *Apply Patch*, select `MMBN3-Perfect.bps`, then your Blue ROM, then where to save the result.
 3. The patched ROM should be:
-   - MD5 `834c7d553b415143360cf7a4a48dd008`
-   - CRC32 `86B128DD`
+   - MD5 `e2fb65181baa5e304da5563c5ef8d596`
+   - CRC32 `1947216E`
    - 8,431,296 bytes
 4. Play it in any GBA emulator (mGBA is recommended) or on a flash cart.
 
@@ -38,7 +38,7 @@ You don't need to build anything to play. The ready-made patch is in
 - Don't load a White save. White's save has White's shops and version flag.
 
 **What the patch includes:** all of the White content, the three optional extras
-(Punk P chip, Press/EngyChng without installing, and halved random encounters) and the "BLUE+WHITE" title
+(Punk P chip, Press/EngyChng without installing, and calmer random encounters in the four busiest maps) and the "BLUE+WHITE" title
 screen. Build it yourself (below) if you want it without the extras.
 
 Where to find everything from White: [WHITE_CONTENT_GUIDE.md](WHITE_CONTENT_GUIDE.md).
@@ -163,7 +163,7 @@ from the Blue + White merge.
 |---|---|---|
 | ✅ | **Press / EngyChng work if you own them** (`patches/extra_equipless_programs.asm`) | All 6 overworld checks for effect 0x28 (Press) and 0x24 (EngyChng) return true if the program is installed *or* is in your NaviCust inventory. Installing it still works as before. |
 | ✅ | **Punk P chip is obtainable** (`patches/extra_punk_chip.asm`) | The cut Mega chip 0x110 is fully present in the ROM, but in vanilla nothing gives it and the library skips it. Punk is fought in three levels: Punk, Punk α, Punk β. Their drop tables now follow the pattern every other Navi uses, with BowlMan as the template: plain Punk still drops only Zenny. **Punk α drops Punk P only at the highest busting levels** (the slots where BowlMan β gives his V4). **Punk β drops it more often**, in every slot where BowlMan β gives a BowlMan chip. Punk P is V3/V4-strength (180 damage, 92 MB, 4★), so it isn't handed out on every α win. Punk has only one chip, so there are no V2-V5 versions. The change is applied to both drop tables used by the 50/50 mix. The library now lists and counts Punk, and the hard-coded Mega total (85) is raised to 86 everywhere it is used (completion star, "n/total" display). |
-| ✅ | **Random encounters halved** (`patches/extra_encounter_rate.asm`) | Applies everywhere on the Net, to random virus battles only; story, NPC and Navi battles are unchanged. Every 64 units you move (about 1 second, or half a second while running with B) the game rolls a random number against a threshold from the area's tier and how far you've walked since the last battle. Vanilla rolls 0-31 and this rolls 0-63, a one-byte change at `0x0801472A`, so every roll has exactly half the vanilla chance. The chance still climbs the longer you go without a battle, so the average time between battles grows by about 15-25% rather than doubling. For example, the BowlMan Undernet area goes from about 14.5 s to 17.7 s of walking. |
+| ✅ | **Busiest random-encounter maps calmed down** (`patches/extra_encounter_rate.asm`) | Same approach as MMBN2 Restored. Every 64 units you move, the game rolls `random & 0x1F` against a threshold from a curve (`0x0800D26C`), indexed by how many checks since the last battle and by the map's level (`0x0800D2F4`; 7 = no encounters, 6 = calmest). In vanilla the whole main Net (groups 0x80-0x83) is level 6 and the comp/object areas (0x88, 0x8A, 0x8C, 0x8D) are level 5. Only four real maps are busier, and only those change, to level 5: the red WWW area (0x83 sub-map 4, AlphaBug viruses) goes from 4 to 5, and three comps (0x8C sub-maps 13-15) go from 3 to 5. Average walking time between battles there goes from about 11-12 s to about 14.5 s, the same as the other comps. Every other level-3 entry is an unused slot with no map, so it is left alone. The curve and the check interval are unchanged, and the build stops if the original bytes aren't the expected ones. |
 | ✅ | **"BLUE+WHITE" title screen** (`patches/title_screen.asm`, `tools/make_title.py`) | The logo reads *MEGA MAN BATTLE NETWORK 3 BLUE+WHITE*, and the screen is cut in half along the italic line through the "+". The left is Blue's title (blue stripes, navy plate) and the right is White's (grey stripes, grey plate). The word uses only Capcom's own lettering: Blue's "BLUE", and White's "WHIT" and final "E", narrowed at full height and at the original italic angle. The last E's arms still run into White's swoosh around the "3", and the plate, its border and the letter outlines are redrawn to match the originals. White's greys go in 32 palette slots that are empty on this screen (208-239). The title loads 240 colours instead of 224, and the menu's dimming covers 240 colours instead of 208, so the grey half dims like the blue half. "PERFECT BLUE" was considered, but the logo font has no P, R, F or C, so it would have needed invented letters. Delete `build/` or comment out the include to keep Blue's title. |
 
 To get the pure merge, comment out the three `extra_*.asm` lines under *Optional extras* at the bottom of `main.asm` and the `title_screen.asm` line above them.
@@ -212,7 +212,7 @@ itself has no emulator-specific code.
 
 | Check | Method | Result |
 |---|---|---|
-| Changed bytes vs vanilla Blue | byte diff of the built ROM | 826 bytes inside the original 8 MB (the hooks, pointers and table entries described above), plus appended data |
+| Changed bytes vs vanilla Blue | byte diff of the built ROM | 829 bytes inside the original 8 MB (the hooks, pointers and table entries described above), plus appended data |
 | Giga legality for all 11 Gigas, with and without BassGS in the library | unit test calling `0x08001A48` | pass |
 | Drop table hook stays stable within a battle, uses both tables ~50/50, Blue table untouched, White copy byte-exact, BassGS row = Bass X | unit test calling `0x08016098` | pass |
 | White Giga art is byte-exact and shows in the Library | byte compare plus screenshot | pass |
@@ -228,7 +228,7 @@ itself has no emulator-specific code.
 | Press/EngyChng usable when owned (not installed), not usable when not owned | unit test | pass |
 | Title screen reads BLUE+WHITE, split blue/white, emulator output matches the generated image pixel for pixel, palette RAM = built palette, grey half dims with the menu and fades out on New Game | emulator screenshots plus image compare | pass |
 | `release/MMBN3-Perfect.bps` applied to clean Blue gives the built ROM | Floating IPS and the repo's own BPS decoder, MD5 compare | pass |
-| Random encounters halved: the game's own encounter check called 3000 times per step count with random seeds | unit test (`t_encounters.py`), vanilla 3.4% / 14.8% / 38.3% vs patched 1.8% / 7.7% / 19.1% at checks 8 / 12 / 16 | pass |
+| Encounter levels: the game's own check called 2000 times per map, with random seeds, at a fixed step count | unit test (`t_encounters.py`): the four outliers drop from 31%/25% to 15.6% per check; five untouched maps (both Net groups and comps) give the same rate as vanilla | pass |
 | Punk P: drop tables, library count +1, anti-cheat verify still passes, library shows 86/86 | unit test plus screenshot | pass |
 
 **Not yet tested end-to-end in an emulator:** walking through a Press gap or EngyChng barrier in the overworld, actually defeating Punk α/β in-game, winning the MistMan V2/V3 fights
