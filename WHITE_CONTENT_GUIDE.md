@@ -70,4 +70,5 @@ Program Advances, NaviCust programs and every chip's stats are identical in Blue
 |---|---|
 | **Punk P** chip (cut content) | Rematch Punk. **Punk** drops Zenny only. **Punk α** drops Punk P only at the **highest busting levels**. **Punk β** drops it **more often** (7 of 14 busting levels). Punk P now counts in the Mega Library, which goes up to **86**. |
 | Press / EngyChng | They work in the overworld as long as you **own** them. You no longer need to install them in the NaviCust. |
+| Random encounters | Every random-battle roll on the Net has **half** the vanilla chance. Story, NPC and Navi battles are unchanged. |
 | "BLUE+WHITE" title screen | Shown on the title screen: split in half, Blue's colours on the left and White's on the right. It uses the original logo lettering from both versions. |
